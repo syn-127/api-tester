@@ -3,6 +3,7 @@ import axios from "axios";
 import { Button } from "@mui/material";
 import TextField from '@mui/material/TextField';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
  class API extends React.Component {
     state = {
@@ -10,6 +11,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
         headers: "",
         payload: "",
         response: "",
+        request: "",
     }
 
     handleChange = event => {
@@ -24,26 +26,71 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
         this.setState({ payload: event.target.value });
     }
 
+    handleChange4 = event => {
+        this.setState({ request: event.target.value });
+    }
+
     handleSubmit = event => {
         event.preventDefault();
 
         const endpoint = this.state.endpoint;
         const headers = this.state.headers;
         const payload = this.state.payload;
+        const request = this.state.request;
 
-        axios.post(endpoint, { headers, payload })
+        if (request === "urlencoded") {
+            axios({
+            method: 'post', //you can set what request you want to be
+            url: endpoint,
+            data: payload,
+            headers: headers})
             .then(res => {
                 console.log(res);
                 console.log(res.data);
-                const apiResponse = res.data
+                let apiResponse = res.data
+                apiResponse = JSON.stringify(apiResponse)
+                this.setState({ response: apiResponse });
                 return apiResponse
             })
+        } else if (request === "JSON") {
+            axios({
+            method: 'post', //you can set what request you want to be
+            url: endpoint,
+            data: payload,
+            headers: {"Content-Type" : "application/json",headers}})
+            .then(res => {
+                console.log(res);
+                console.log(res.data);
+                let apiResponse = res.data
+                apiResponse = JSON.stringify(apiResponse)
+                this.setState({ response: apiResponse });
+                return apiResponse
+            })
+        } else {
+            this.setState({ response: "Please select a request type" });
+        }
     }
+
+    
 
     render() {
         return (
             <div>
                 <form onSubmit={this.handleSubmit}>
+                    <FormControl fullWidth>
+                        <InputLabel id="request">Method</InputLabel>
+                        <Select
+                            labelId="request"
+                            id="request"
+                            value={this.request}
+                            label="JSON"
+                            onChange={this.handleChange4}
+                        >
+                            <MenuItem value={"JSON"}>JSON</MenuItem>
+                            <MenuItem value={"urlencoded"}>Form-Data</MenuItem>
+                            </Select>
+                    </FormControl>
+                    
                     <label>
                         Endpoint:
                         <TextField id="Endpoint" label="Endpoint" varient="outlined" name="endpoint" onChange={this.handleChange} />
@@ -63,7 +110,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
                         aria-label="Response"
                         placeholder="Empty"
                         style={{ width: 400, height: 50 }}
-                        value={this.apiResponse}
+                        value={this.state.response}
             />
             </div>
         )
@@ -71,4 +118,3 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 }
 
 export default API;
-
